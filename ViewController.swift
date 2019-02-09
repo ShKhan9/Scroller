@@ -13,28 +13,87 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        for i in 0..<10 {
-            
-            let customView = UIView(frame: CGRect(x: i * 240 , y: 0, width: 240, height: 128))
-            // .random is unimportant here
-            customView.backgroundColor =  i % 2 == 0 ? UIColor.green : UIColor.red
-            scroller.addSubview(customView)
-            
-        }
+     
+        AppCategory.fetchedFeaturedApps()
+        
         
     }
     
     override func viewDidLayoutSubviews(){
-        self.scroller.contentSize = CGSize(width:2400,height:128)
-        print(self.scroller.contentSize) // 2400
-       // print(self.stack.subviews)
+      
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print("scrollin'")
+       
     }
 
 
 }
+
+
+
+
+
+    class AppCategory: NSObject{
+        var name: String?
+        var apps: [CategoryApp]?
+        
+        static func fetchedFeaturedApps(){
+            let jsonUrlString = "https://api.letsbuildthatapp.com/appstore/featured"
+            guard let url = URL(string: jsonUrlString) else {return}
+            URLSession.shared.dataTask(with: url) { (data, response, err) in
+                guard let data = data else {return}
+                do{
+                    let featured = try JSONDecoder().decode(Featured.self, from: data)
+                    print(featured)
+                }catch{
+                    print(error)
+                }
+                }.resume()
+        }
+    }
+
+
+
+
+struct Featured: Codable {
+    let bannerCategory: BannerCategory
+    let categories: [Category]
+}
+
+struct BannerCategory: Codable {
+    let name: String
+    let apps: [BannerCategoryApp]
+    let type: String
+}
+
+struct BannerCategoryApp: Codable {
+    let imageName: String
+    
+    enum CodingKeys: String, CodingKey {
+        case imageName = "ImageName"
+    }
+}
+
+struct Category: Codable {
+    let name: String
+    let apps: [CategoryApp]
+    let type: String
+}
+
+struct CategoryApp: Codable {
+    let id: Int?
+    let name, category: String?
+    let price: Double?
+    let imageName: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "Id"
+        case name = "Name"
+        case category = "Category"
+        case price = "Price"
+        case imageName = "ImageName"
+    }
+}
+
 
